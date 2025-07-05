@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Imagen interactiva</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+      background: #222;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      position: relative;
+      width: 90vw;
+      max-width: 400px;
+      aspect-ratio: 1/1;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      background: #111;
+    }
+    .main-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 20px;
+    }
+    .overlay-text {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      text-align: center;
+      font-size: 1.5rem;
+      padding: 1rem 0.5rem;
+      box-sizing: border-box;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      user-select: none;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        max-width: 98vw;
+      }
+      .overlay-text {
+        font-size: 1.1rem;
+        padding: 0.7rem 0.3rem;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="interactive-container">
+    <img src="ardilla1.png" alt="Imagen 1" class="main-image" id="mainImage">
+    <div class="overlay-text" id="overlayText">
+      ¡Hola! Soy una ardilla mágica perdida 🐿️✨
+      ¡Quien me encuentre tendrá un obsequio especial!
+    </div>
+    <audio id="audioPlayer" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+  </div>
+  <script>
+    // Personaliza aquí tus imágenes, textos y canción
+    const estados = [
+      {
+        imagen: 'ardilla1.png',
+        texto: '¡Hola! Soy una ardilla mágica perdida 🐿️✨\n¡Quien me encuentre tendrá un obsequio especial!',
+        cancion: null
+      },
+      {
+        imagen: 'ardilla1.png',
+        texto: '¡Toca de nuevo para descubrir mi magia! 🎵✨\n¡Escucha mi canción mágica!',
+        cancion: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+      },
+      {
+        imagen: 'ardilla2.png',
+        texto: 'Para encontrarme deberás resolver el acertijo: En esta casa hay una puerta que no cierra bien, sus bisagras suenan y se mueven sin parar. Detrás de ella se esconde un tesoro especial, que solo los más valientes podrán encontrar. Busca donde el viento entra y sale, donde las sombras bailan sin cesar. ¡Tu premio te espera detrás de esa puerta!',
+        cancion: null
+      }
+    ];
+
+    let estadoActual = 0;
+    const mainImage = document.getElementById('mainImage');
+    const overlayText = document.getElementById('overlayText');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const container = document.getElementById('interactive-container');
+
+    function actualizarEstado() {
+      const estado = estados[estadoActual];
+      mainImage.src = estado.imagen;
+      overlayText.textContent = estado.texto;
+      if (estado.cancion) {
+        audioPlayer.src = estado.cancion;
+        audioPlayer.currentTime = 0;
+        audioPlayer.play();
+      } else {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+      }
+    }
+
+    container.addEventListener('click', () => {
+      estadoActual = (estadoActual + 1) % estados.length;
+      actualizarEstado();
+    });
+
+    // Para que funcione bien en móviles (tocar la pantalla)
+    container.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      estadoActual = (estadoActual + 1) % estados.length;
+      actualizarEstado();
+    }, { passive: false });
+
+    // Inicializar
+    actualizarEstado();
+  </script>
+</body>
+</html> 
