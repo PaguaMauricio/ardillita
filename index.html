@@ -47,27 +47,6 @@
       border-bottom-left-radius: 20px;
       border-bottom-right-radius: 20px;
       user-select: none;
-      min-height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .typing-animation {
-      overflow: hidden;
-      border-right: 2px solid #fff;
-      white-space: pre-wrap;
-      animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
-    }
-
-    @keyframes typing {
-      from { width: 0; }
-      to { width: 100%; }
-    }
-
-    @keyframes blink-caret {
-      from, to { border-color: transparent; }
-      50% { border-color: #fff; }
     }
 
     @media (max-width: 600px) {
@@ -89,22 +68,24 @@
       ¡Hola! Soy una ardilla mágica perdida 🐿️✨
       ¡Quien me encuentre tendrá un obsequio especial!
     </div>
-    <audio id="audioPlayer" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop autoplay></audio>
+    <audio id="audioPlayer" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
   </div>
   <script>
     // Personaliza aquí tus imágenes, textos y canción
     const estados = [
       {
         imagen: 'ardilla1.png',
-        texto: '¡Hola! Soy una ardilla mágica perdida 🐿️✨\n¡Quien me encuentre tendrá un obsequio especial!'
+        texto: '¡Hola! Soy una ardilla mágica perdida 🐿️✨\n¡Quien me encuentre tendrá un obsequio especial!',
+        cancion: null
       },
       {
         imagen: 'ardilla1.png',
-        texto: '¡Toca de nuevo para descubrir mi magia! 🎵✨\n¡Escucha mi canción mágica!'
+        texto: '¡Toca de nuevo para descubrir mi magia! 🎵✨\n¡Escucha mi canción mágica!',
+        cancion: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
       },
       {
         imagen: 'ardilla2.png',
-        texto: 'Para encontrarme deberás resolver el acertijo: "No me usan para lo que fui hecha, y si quisieran tampoco sirvo bien, me hubieran hecho bote o mesa mejor"',
+        texto: 'Para encontrarme deberás resolver el acertijo: En esta casa hay una puerta que no cierra bien, sus bisagras suenan y se mueven sin parar. Detrás de ella se esconde un tesoro especial, que solo los más valientes podrán encontrar. Busca donde el viento entra y sale, donde las sombras bailan sin cesar. ¡Tu premio te espera detrás de esa puerta!',
         cancion: null
       }
     ];
@@ -118,13 +99,14 @@
     function actualizarEstado() {
       const estado = estados[estadoActual];
       mainImage.src = estado.imagen;
-      
-      // Aplicar animación de typing
-      overlayText.innerHTML = '<span class="typing-animation">' + estado.texto + '</span>';
-      
-      // Asegurar que la música se reproduzca durante todo el programa
-      if (audioPlayer.paused) {
+      overlayText.textContent = estado.texto;
+      if (estado.cancion) {
+        audioPlayer.src = estado.cancion;
+        audioPlayer.currentTime = 0;
         audioPlayer.play();
+      } else {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
       }
     }
 
@@ -142,13 +124,6 @@
 
     // Inicializar
     actualizarEstado();
-    
-    // Asegurar que la música se reproduzca cuando el usuario interactúe
-    document.addEventListener('click', () => {
-      if (audioPlayer.paused) {
-        audioPlayer.play();
-      }
-    }, { once: true });
   </script>
 </body>
 </html> 
