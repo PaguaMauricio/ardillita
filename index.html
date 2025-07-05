@@ -29,7 +29,7 @@
     }
     .overlay-text {
       position: absolute;
-      bottom: 0;
+      bottom: 2rem;
       width: 100%;
       background: rgba(0,0,0,0.7);
       color: #fff;
@@ -45,15 +45,13 @@
     }
 
     .typing-animation {
-      overflow: hidden;
-      border-right: 2px solid #fff;
       white-space: pre-wrap;
-      animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+      display: inline-block;
     }
 
-    @keyframes typing {
-      from { width: 0; }
-      to { width: 100%; }
+    .typing-cursor {
+      border-right: 2px solid #fff;
+      animation: blink-caret 0.75s step-end infinite;
     }
 
     @keyframes blink-caret {
@@ -84,15 +82,15 @@
     const estados = [
       {
         imagen: 'ardilla1.png',
-        texto: '¡Hola! Soy una ardilla mágica perdida 🐿️✨\n¡Quien me encuentre tendrá un obsequio especial!'
+        texto: '¡Hola! Soy una ardilla mágica perdida \n¡Quien me encuentre tendrá un obsequio especial!'
       },
       {
         imagen: 'ardilla1.png',
-        texto: '¡Toca de nuevo para descubrir mi magia! 🎵✨\n¡Escucha mi canción mágica!'
+        texto: '\n¡Bailecito, bailecito, bailecito!'
       },
       {
         imagen: 'ardilla2.png',
-        texto: 'Para encontrarme deberás resolver el acertijo: En esta casa hay una puerta que no cierra bien, sus bisagras suenan y se mueven sin parar. Detrás de ella se esconde un tesoro especial, que solo los más valientes podrán encontrar. Busca donde el viento entra y sale, donde las sombras bailan sin cesar. ¡Tu premio te espera detrás de esa puerta!'
+        texto: 'Para encontrarme deberás resolver el acertijo: No me usan para lo que fui hecha, y si quisieran tampoco sirvo bien, me hubieran hecho bote o mesa mejor'
       }
     ];
 
@@ -101,13 +99,167 @@
     const overlayText = document.getElementById('overlayText');
     const audioPlayer = document.getElementById('audioPlayer');
     const container = document.getElementById('interactive-container');
+    
+    // Configuración de text-to-speech
+    let speechSynthesis = window.speechSynthesis;
+    let speaking = false;
+    let selectedVoice = null; // Voz seleccionada que se usará siempre
+
+    function selectVoice() {
+      const voices = speechSynthesis.getVoices();
+      console.log('Todas las voces disponibles:', voices.map(v => `${v.name} (${v.lang})`));
+      
+      // Buscar específicamente una voz femenina en español
+      let femaleVoice = voices.find(voice => 
+        voice.lang.includes('es') && (
+          voice.name.toLowerCase().includes('female') ||
+          voice.name.toLowerCase().includes('mujer') ||
+          voice.name.toLowerCase().includes('helena') ||
+          voice.name.toLowerCase().includes('maria') ||
+          voice.name.toLowerCase().includes('ana') ||
+          voice.name.toLowerCase().includes('carmen') ||
+          voice.name.toLowerCase().includes('lucia') ||
+          voice.name.toLowerCase().includes('monica')
+        )
+      );
+      
+      // Si no encuentra una voz femenina específica, buscar en voces en inglés que suelen ser femeninas
+      if (!femaleVoice) {
+        femaleVoice = voices.find(voice => 
+          voice.lang.includes('en') && (
+            voice.name.toLowerCase().includes('female') ||
+            voice.name.toLowerCase().includes('samantha') ||
+            voice.name.toLowerCase().includes('victoria') ||
+            voice.name.toLowerCase().includes('alex') ||
+            voice.name.toLowerCase().includes('karen') ||
+            voice.name.toLowerCase().includes('fiona')
+          )
+        );
+      }
+      
+      // Si no encuentra una voz femenina específica, buscar en voces en francés
+      if (!femaleVoice) {
+        femaleVoice = voices.find(voice => 
+          voice.lang.includes('fr') && (
+            voice.name.toLowerCase().includes('female') ||
+            voice.name.toLowerCase().includes('amelie')
+          )
+        );
+      }
+      
+      // Como último recurso, usar cualquier voz pero con tono muy alto para simular voz femenina
+      if (!femaleVoice) {
+        femaleVoice = voices.find(voice => voice.lang.includes('es'));
+        console.log('Usando voz de respaldo con tono alto:', femaleVoice ? femaleVoice.name : 'No hay voces en español');
+      }
+      
+      selectedVoice = femaleVoice;
+      console.log('Voz seleccionada:', selectedVoice ? selectedVoice.name : 'No se encontró voz femenina');
+    }
+
+    function speakText(text) {
+      // Detener cualquier síntesis de voz anterior
+      if (speaking) {
+        speechSynthesis.cancel();
+      }
+      
+      // Crear un nuevo utterance
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Configurar voz femenina en español
+      utterance.lang = 'es-ES';
+      utterance.rate = 1.3; // Velocidad más rápida
+      utterance.pitch = 1.5; // Tono muy alto para forzar voz femenina
+      utterance.volume = 0.8; // Volumen al 80%
+      
+      // Usar la voz previamente seleccionada
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        console.log('Usando voz seleccionada:', selectedVoice.name);
+      } else {
+        // Si no hay voz seleccionada, intentar seleccionar una
+        selectVoice();
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          console.log('Voz seleccionada en speakText:', selectedVoice.name);
+        }
+      }
+      
+      // Forzar configuración femenina adicional
+      if (selectedVoice && !selectedVoice.name.toLowerCase().includes('female') && 
+          !selectedVoice.name.toLowerCase().includes('mujer') && 
+          !selectedVoice.name.toLowerCase().includes('helena') && 
+          !selectedVoice.name.toLowerCase().includes('maria') && 
+          !selectedVoice.name.toLowerCase().includes('ana') && 
+          !selectedVoice.name.toLowerCase().includes('carmen')) {
+        // Si no es una voz femenina específica, aumentar aún más el tono
+        utterance.pitch = 1.8;
+        console.log('Forzando tono alto para simular voz femenina');
+      }
+      
+      // Eventos para controlar el estado
+      utterance.onstart = () => {
+        speaking = true;
+        console.log('Iniciando síntesis de voz con:', selectedVoice ? selectedVoice.name : 'voz por defecto');
+      };
+      
+      utterance.onend = () => {
+        speaking = false;
+      };
+      
+      utterance.onerror = () => {
+        speaking = false;
+        console.log('Error en síntesis de voz');
+      };
+      
+      // Iniciar la síntesis de voz
+      speechSynthesis.speak(utterance);
+    }
+
+    function typeText(text, element, baseSpeed = 100) {
+      element.innerHTML = '';
+      let index = 0;
+      
+      // Iniciar la síntesis de voz cuando comience a escribir
+      speakText(text);
+      
+      function typeNextChar() {
+        if (index < text.length) {
+          // Agregar el siguiente carácter
+          element.textContent += text[index];
+          index++;
+          
+          // Agregar cursor parpadeante
+          element.innerHTML += '<span class="typing-cursor"></span>';
+          
+          // Velocidad aleatoria entre 20ms y 60ms
+          const randomSpeed = Math.random() * 40 + 20;
+          
+          // Programar el siguiente carácter
+          setTimeout(typeNextChar, randomSpeed);
+        } else {
+          // Remover el cursor cuando termine
+          element.innerHTML = element.textContent;
+        }
+      }
+      
+      typeNextChar();
+    }
 
     function actualizarEstado() {
       const estado = estados[estadoActual];
       mainImage.src = estado.imagen;
       
-      // Aplicar animación de typing
-      overlayText.innerHTML = '<span class="typing-animation">' + estado.texto + '</span>';
+      // Limpiar el contenido anterior
+      overlayText.innerHTML = '';
+      
+      // Crear el elemento para el typing
+      const typingSpan = document.createElement('span');
+      typingSpan.className = 'typing-animation';
+      overlayText.appendChild(typingSpan);
+      
+      // Iniciar el efecto de typing caracter por caracter
+      typeText(estado.texto, typingSpan, 30);
       
       // Asegurar que la música se reproduzca durante todo el programa
       if (audioPlayer.paused) {
@@ -127,8 +279,24 @@
       actualizarEstado();
     }, { passive: false });
 
-    // Inicializar
-    actualizarEstado();
+    // Cargar las voces disponibles cuando estén listas
+    speechSynthesis.onvoiceschanged = () => {
+      console.log('Voces disponibles:', speechSynthesis.getVoices());
+      // Seleccionar la voz femenina al cargar
+      selectVoice();
+    };
+    
+    // Inicializar después de que las voces estén listas
+    if (speechSynthesis.getVoices().length > 0) {
+      selectVoice();
+      actualizarEstado();
+    } else {
+      // Si las voces no están cargadas, esperar a que se carguen
+      speechSynthesis.onvoiceschanged = () => {
+        selectVoice();
+        actualizarEstado();
+      };
+    }
     
     // Asegurar que la música se reproduzca cuando el usuario interactúe
     document.addEventListener('click', () => {
